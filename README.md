@@ -1,54 +1,153 @@
-# Job Portal — Simple Frontend (Plain HTML/CSS/JS)
+# Meridian Hiring — Job Application Portal
 
-No build step, no npm install, no React. Just static files that call the same Node.js/Express + AWS backend with `fetch()`.
+A full-stack, cloud-native job application portal. Candidates submit applications with a resume upload; recruiters review, filter, and manage submissions from a secure dashboard. Built on AWS (DynamoDB + S3) with a plain HTML/CSS/JS frontend and a Node.js/Express backend — no frontend build step required.
+
+## Features
+
+- **Candidate application form** — name, email, position, and PDF resume upload (max 5MB), with client-side validation and a drag-and-drop dropzone.
+- **Recruiter dashboard** — search, filter by position/status, and update application status (Pending / Shortlisted / Selected / Rejected).
+- **Resume storage** — uploaded PDFs are stored privately in S3 (AES256 server-side encryption) and accessed only via short-lived presigned URLs, never publicly exposed.
+- **Admin authentication** — JWT-based login with httpOnly cookies (7-day expiry); the dashboard is inaccessible without a valid session.
+- **About page** — a public-facing overview of what Meridian Hiring does and how the process works.
+
+## Tech stack
+
+| Layer        | Technology                                  |
+|--------------|----------------------------------------------|
+| Frontend     | Plain HTML / CSS / JavaScript (no build step) |
+| Backend      | Node.js, Express, AWS SDK v3                  |
+| Database     | Amazon DynamoDB (on-demand capacity)          |
+| File storage | Amazon S3 (private bucket, presigned URLs)    |
+| Auth         | JSON Web Tokens, httpOnly cookies             |
+| Process mgmt | PM2                                           |
+| Web server   | Nginx (static file serving + reverse proxy)   |
+| Hosting      | AWS EC2 (Ubuntu 24.04 LTS)                    |
+
+## Architecture
 
 ```
-job-portal-html-version/
-├── backend/              Node.js/Express + AWS SDK v3 backend (same as the React version)
+Browser
+   │
+   ▼
+ Nginx (port 80)
+   ├── /              → static files (frontend-public/)
+   └── /api/*         → reverse proxy → Express (port 5000, via PM2)
+                              │
+                              ├── DynamoDB  (application records)
+                              └── S3        (resume PDFs, presigned URLs)
+```
+
+## Project structure
+
+```
+.
+├── backend/
+│   ├── config/          # environment + AWS client config
+│   ├── middleware/       # auth guard (JWT verification)
+│   ├── routes/            # applications, admin, auth route handlers
+│   ├── services/          # dynamoService, s3Service
+│   ├── scripts/           # one-time setup (create-table)
+│   └── server.js
 └── frontend-public/
-    ├── index.html        Candidate application form
-    ├── admin.html        Recruiter dashboard
-    ├── style.css          Shared styling for both pages
-    ├── config.js          Sets the backend API URL
-    ├── apply.js           Form logic for index.html
-    └── admin.js           Dashboard logic for admin.html
+    ├── index.html         # candidate application form
+    ├── about.html         # public company/portal overview
+    ├── admin.html          # recruiter dashboard (protected)
+    ├── login.html           # admin login
+    ├── style.css
+    ├── config.js             # API_URL definition
+    ├── apply.js
+    ├── admin.js
+    └── login.js
 ```
 
-## How to run it
+## Local development
 
-**1. Start the backend:**
+### Prerequisites
+
+- Node.js 20+
+- An AWS account with a DynamoDB table and an S3 bucket (see [Setup](#aws-setup) below)
+
+### Backend
+
 ```bash
 cd backend
 npm install
-cp .env.example .env
-# fill in AWS_REGION, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, S3_BUCKET_NAME, DYNAMODB_TABLE_NAME
-npm run create-table
-npm run dev
+cp .env.example .env   # fill in your own values
+npm run create-table   # one-time: creates the DynamoDB table if it doesn't exist
+npm run dev             # starts on http://localhost:5000
 ```
-Leave it running on `http://localhost:5000`.
 
-**2. Serve the `frontend-public/` folder** as static files. You can't just double-click `index.html` and open it as a `file://` URL — browsers block `fetch()` calls from `file://` pages in ways that cause confusing errors. Instead, serve it with any simple static server:
+### Frontend
 
 ```bash
 cd frontend-public
-npx serve -p 8080 .
+npx serve -p 8080       # or: python -m http.server 8080
 ```
-(or, if you have Python installed: `python -m http.server 8080`)
 
-**3. Open your browser** to `http://localhost:8080/index.html` (the candidate form) and `http://localhost:8080/admin.html` (the dashboard).
+Visit `http://localhost:8080`.
 
-## Important: match your backend's CORS_ORIGIN
+### Environment variables
 
-In `job-portal/backend/.env`, make sure:
-```
+```dotenv
+PORT=5000
+NODE_ENV=development
 CORS_ORIGIN=http://localhost:8080
-```
-This must exactly match the URL/port you're serving this `public/` folder from, or the browser will block the requests with a CORS error.
 
-## If `config.js` needs to point somewhere else
+AWS_REGION=ap-south-1
+# Omit AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY when running on EC2 with an
+# attached IAM role — the SDK picks up credentials automatically.
+AWS_ACCESS_KEY_ID=
+AWS_SECRET_ACCESS_KEY=
 
-Open `config.js` and change:
-```js
-const API_URL = 'http://localhost:5000/api';
+S3_BUCKET_NAME=your-bucket-name
+MAX_FILE_SIZE_BYTES=5242880
+
+DYNAMODB_TABLE_NAME=your-table-name
+
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=choose-a-strong-password
+JWT_SECRET=generate-with-crypto-randomBytes
 ```
-to wherever your backend is actually running (e.g. your EC2 IP once deployed: `http://<EC2_PUBLIC_IP>/api`).
+
+> **Never commit `.env` or paste real credentials anywhere public.** Use an IAM role in production instead of static keys.
+
+## AWS setup
+
+1. **DynamoDB** — table with partition key `applicationId` (String), on-demand billing. Run `npm run create-table` to create it automatically.
+2. **S3** — a private bucket with default encryption (AES256) enabled. Public access should be blocked entirely; the app uses presigned URLs for both uploads and downloads.
+3. **IAM** — scope permissions to the specific table and bucket (avoid `*` resource wildcards). On EC2, attach an IAM role to the instance rather than using static access keys.
+
+## Deployment
+
+Deployed on a single EC2 instance (Ubuntu 24.04):
+
+- **PM2** keeps the Express backend running and restarts it on crash or reboot.
+- **Nginx** serves the static frontend directly and reverse-proxies `/api/*` to the backend on `localhost:5000`, so both frontend and API are served from the same origin on port 80.
+
+```bash
+# Backend
+cd backend && npm install --production
+pm2 start server.js --name job-portal-api
+pm2 save && pm2 startup
+
+# Nginx (excerpt)
+server {
+    listen 80;
+    server_name <your-ip-or-domain>;
+    root /path/to/frontend-public;
+    index index.html;
+
+    location / { try_files $uri $uri/ =404; }
+    location /api/ { proxy_pass http://localhost:5000/api/; }
+}
+```
+
+## Roadmap
+
+- [ ] HTTPS via Let's Encrypt once a domain is attached
+- [ ] Move admin credentials from `.env` to DynamoDB with hashed passwords
+- [ ] Global Secondary Indexes for filtering by position/status without a full table scan
+
+## License
+
+This project is for educational/portfolio purposes.
