@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Recruiter Dashboard — Job Application Portal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <span class="site-header__brand">Meridian Hiring</span>
+      <nav class="site-header__nav">
+        <a href="index.html">Apply</a>
+        <a href="about.html">About</a>
+        <a href="admin.html" class="active">Recruiter dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="page">
+    <div style="margin-bottom: 28px;">
+      <div class="letterhead__eyebrow">Recruiter dashboard</div>
+      <h1 style="font-size: 1.8rem;">Applications on file</h1>
+    </div>
+
+    <div class="dashboard-stats" id="dashboardStats">
+      <div class="dashboard-stat"><div class="dashboard-stat__count" id="countPending">0</div><div class="dashboard-stat__label">Pending</div></div>
+      <div class="dashboard-stat"><div class="dashboard-stat__count" id="countShortlisted">0</div><div class="dashboard-stat__label">Shortlisted</div></div>
+      <div class="dashboard-stat"><div class="dashboard-stat__count" id="countRejected">0</div><div class="dashboard-stat__label">Rejected</div></div>
+      <div class="dashboard-stat"><div class="dashboard-stat__count" id="countSelected">0</div><div class="dashboard-stat__label">Selected</div></div>
+    </div>
+
+    <div class="dashboard-toolbar">
+      <div class="field field--search">
+        <label for="search">Search by name or email</label>
+        <input id="search" type="text" placeholder="Search applicants…" />
+      </div>
+      <div class="field">
+        <label for="positionFilter">Position</label>
+        <select id="positionFilter"><option value="">All positions</option></select>
+      </div>
+      <div class="field">
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter">
+          <option value="">All statuses</option>
+          <option value="Pending">Pending</option>
+          <option value="Shortlisted">Shortlisted</option>
+          <option value="Rejected">Rejected</option>
+          <option value="Selected">Selected</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="dashboardNotice"></div>
+    <div id="dashboardContent">
+      <div class="loading-state">Loading applications…</div>
+    </div>
+  </main>
+
+  <script src="config.js"></script>
+  <script src="admin.js"></script>
+</body>
+</html>

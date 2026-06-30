@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Job Application Portal — Meridian Hiring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="site-header__inner">
+      <span class="site-header__brand">Meridian Hiring</span>
+      <nav class="site-header__nav">
+        <a href="index.html" class="active">Apply</a>
+        <a href="about.html">About</a>
+        <a href="admin.html">Recruiter dashboard</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Company masthead: who Meridian is and what it does -->
+  <section class="masthead">
+    <p class="masthead__est">Est. 2026 — Chartered Talent Partners</p>
+    <h1 class="masthead__title">We place careers, not just candidates.</h1>
+    <p class="masthead__lede">
+      Meridian Hiring works with growing companies to fill roles across engineering,
+      design, and operations. Every application is reviewed by a real person — no
+      automated rejections, no black box.
+    </p>
+    <div class="masthead__rule"></div>
+  </section>
+
+  <section class="departments">
+    <div class="department">
+      <div class="department__label">Engineering</div>
+      <div class="department__name">Build &amp; Infrastructure</div>
+      <div class="department__desc">Backend, frontend, and platform roles across our partner companies.</div>
+    </div>
+    <div class="department">
+      <div class="department__label">Design</div>
+      <div class="department__name">Product &amp; Brand</div>
+      <div class="department__desc">Visual, product, and UX design positions, contract and full-time.</div>
+    </div>
+    <div class="department">
+      <div class="department__label">Operations</div>
+      <div class="department__name">People &amp; Process</div>
+      <div class="department__desc">Operations, HR, and project coordination roles.</div>
+    </div>
+    <div class="department">
+      <div class="department__label">Finance</div>
+      <div class="department__name">Accounts &amp; Analysis</div>
+      <div class="department__desc">Finance, accounting, and analyst positions for scaling teams.</div>
+    </div>
+  </section>
+
+  <main class="page page--narrow">
+
+    <!-- Application form -->
+    <form id="applyForm" class="letterhead" novalidate>
+      <div class="letterhead__eyebrow">Application for employment</div>
+      <h1 class="letterhead__title">Tell us about you</h1>
+      <p class="letterhead__subtitle">Fill in your details and attach a resume. It takes about two minutes.</p>
+
+      <div id="formNotice"></div>
+
+      <div class="field" id="fullNameField">
+        <label for="fullName">Full name</label>
+        <input id="fullName" type="text" placeholder="Jordan Avery" autocomplete="name" />
+        <div class="field-error-msg" id="fullNameError"></div>
+      </div>
+
+      <div class="field" id="emailField">
+        <label for="email">Email address</label>
+        <input id="email" type="email" placeholder="jordan@example.com" autocomplete="email" />
+        <div class="field-error-msg" id="emailError"></div>
+      </div>
+
+      <div class="field" id="positionField">
+        <label for="position">Position</label>
+        <select id="position">
+          <option value="">Loading positions…</option>
+        </select>
+        <div class="field-error-msg" id="positionError"></div>
+      </div>
+
+      <div class="field" id="resumeField">
+        <label for="resume">Resume (PDF)</label>
+        <label class="dropzone" id="dropzone" for="resume">
+          <span class="dropzone__icon">📄</span>
+          <span class="dropzone__label" id="dropzoneLabel">Drop your PDF here, or click to browse</span>
+          <input id="resume" type="file" accept="application/pdf" />
+          <div class="dropzone__filename" id="resumeFilename"></div>
+        </label>
+        <div class="hint">PDF only, up to 5MB.</div>
+        <div class="field-error-msg" id="resumeError"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-block" id="submitBtn">Submit application</button>
+    </form>
+
+    <!-- Confirmation screen (hidden until success) -->
+    <div class="letterhead" id="confirmationPanel" style="display:none;">
+      <div class="confirmation">
+        <div class="confirmation__seal">✓</div>
+        <h1 class="letterhead__title">Application received</h1>
+        <p class="letterhead__subtitle" id="confirmationText"></p>
+        <div class="confirmation__id" id="confirmationId"></div>
+      </div>
+      <div style="margin-top:32px; text-align:center;">
+        <button class="btn btn-secondary" id="applyAgainBtn">Submit another application</button>
+      </div>
+    </div>
+
+  </main>
+
+  <script src="config.js"></script>
+  <script src="apply.js"></script>
+</body>
+</html>
